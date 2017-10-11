@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public class ServerManager : MonoBehaviour,IEventListener{  
+public class ServerManager : MonoSingleton<ServerManager>{  
 
 	string jsonUrl = "https://external.api.yle.fi/v1/programs/items.json?app_id=606c8dd7&app_key=6b5dfd20fc5abe41a53bd591df933f2d&limit=100&availability=ondemand&mediaobject=video&q=";
 
@@ -24,7 +24,7 @@ public class ServerManager : MonoBehaviour,IEventListener{
 		while (!operation.IsReady)
 			yield return 0;
         
-        AppEvents.Instance.Server.Fire(ServerBroadcaster.EventName.OnLoaded, operation.Data);
+        UIManager.Instance.OmLoaded(operation.Data);
 
 	}
 
@@ -35,18 +35,10 @@ public class ServerManager : MonoBehaviour,IEventListener{
 	}
 
 	IEnumerator APIInternal<T>(string url, OperationResult<T> operation) where T : class, new(){
-        //WWW www = new WWW(url);
         UnityWebRequest web = UnityWebRequest.Get(url);
         yield return web.Send();
         operation.ResolveData(web.downloadHandler.text);
 		operation.IsReady = true;
 	}
 
-    public void OnEvent(string eventName, object content){
-        if (eventName == ServerBroadcaster.EventName.OnRequest)
-		{
-		    DataRequest((string)content);
-		}
-       
-    }
 }
